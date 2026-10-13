@@ -26,6 +26,11 @@ jobs:
           HELIUS_KEY: ${{ secrets.HELIUS_KEY }}
           WALLET_BOT_TOKEN: ${{ secrets.WALLET_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
+          MAX_TRADES_PER_DAY: "500"
+          MAX_TOP_SHARE: "0.85"
+          MIN_WINRATE: "0.4"
+          MIN_CLOSED: "5"
+          HISTORY_TXS: "300"
       - name: Save state
         run: |
           git config user.name "bot"
