@@ -291,13 +291,18 @@ def passes(st):
 
 
 def gt(path, params=None):
-    time.sleep(2.5)  # GeckoTerminal free limit
-    r = requests.get(
-        "https://api.geckoterminal.com/api/v2" + path, params=params,
-        headers={"Accept": "application/json;version=20230302"}, timeout=30,
-    )
-    r.raise_for_status()
-    return r.json()
+    for attempt in range(5):
+        time.sleep(4 + attempt * 8)  # wait longer after each block
+        r = requests.get(
+            "https://api.geckoterminal.com/api/v2" + path, params=params,
+            headers={"Accept": "application/json;version=20230302"}, timeout=30,
+        )
+        if r.status_code == 429:
+            print("rate limited, waiting...")
+            continue
+        r.raise_for_status()
+        return r.json()
+    raise Exception("GeckoTerminal kept rate limiting")
 
 
 def find_candidates():
