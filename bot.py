@@ -22,7 +22,7 @@ MIN_CLOSED = int(os.environ.get("MIN_CLOSED", "4"))             # min coins boug
 MIN_WINRATE = float(os.environ.get("MIN_WINRATE", "0.45"))
 MIN_NET_SOL = float(os.environ.get("MIN_NET_SOL", "0.5"))         # min total profit in SOL
 MAX_TRADES_PER_DAY = float(os.environ.get("MAX_TRADES_PER_DAY", "120"))  # above this = another bot
-MAX_TOP_SHARE = float(os.environ.get("MAX_TOP_SHARE", "0.6"))   # one coin can't be >60% of profit
+MAX_TOP_SHARE = float(os.environ.get("MAX_TOP_SHARE", "0.7"))   # one coin can't be >60% of profit
 MIN_PUMP_PCT = float(os.environ.get("MIN_PUMP_PCT", "30"))      # coin must be up this % in 24h
 POOLS_TO_SCAN = int(os.environ.get("POOLS_TO_SCAN", "10"))
 MAX_CANDIDATES = int(os.environ.get("MAX_CANDIDATES", "25"))
@@ -115,10 +115,37 @@ def tok_amount(t):
         return 0.0
 
 
+def fallback_parse(tx, wallet):
+    """For trades Helius did not label as a swap (pump.fun etc): read balance changes."""
+    sol = 0.0
+    for a in tx.get("accountData", []) or []:
+        if a.get("account") == wallet:
+            sol += (a.get("nativeBalanceChange") or 0) / 1e9
+    got, sent, wsol = [], [], 0.0
+    for t in tx.get("tokenTransfers", []) or []:
+        mint, amt = t.get("mint"), t.get("tokenAmount") or 0
+        if mint == SOL_MINT:
+            if t.get("toUserAccount") == wallet:
+                wsol += amt
+            if t.get("fromUserAccount") == wallet:
+                wsol -= amt
+        elif t.get("toUserAccount") == wallet:
+            got.append(mint)
+        elif t.get("fromUserAccount") == wallet:
+            sent.append(mint)
+    if abs(sol) < 0.01:
+        sol = wsol
+    if sol <= -0.01 and got:
+        return {"side": "BUY", "mint": got[0], "sol": -sol}
+    if sol >= 0.01 and sent:
+        return {"side": "SELL", "mint": sent[0], "sol": sol}
+    return None
+
+
 def parse_swap(tx, wallet):
     sw = (tx.get("events") or {}).get("swap")
     if not sw:
-        return None
+        return fallback_parse(tx, wallet)
     sol_in = sol_out = 0.0
     ni, no = sw.get("nativeInput"), sw.get("nativeOutput")
     if ni and ni.get("account") == wallet:
@@ -282,6 +309,21 @@ def wallet_stats(wallet):
     }
 
 
+def why(st):
+    r = []
+    if st["closed"] < MIN_CLOSED:
+        r.append("few coins")
+    if st["winrate"] < MIN_WINRATE:
+        r.append("low win%")
+    if st["net"] < MIN_NET_SOL:
+        r.append("low profit")
+    if st["top_share"] > MAX_TOP_SHARE:
+        r.append("one lucky coin")
+    if st["tpd"] > MAX_TRADES_PER_DAY:
+        r.append("too fast")
+    return ", ".join(r)
+
+
 def passes(st):
     return bool(
         st and st["closed"] >= MIN_CLOSED and st["winrate"] >= MIN_WINRATE
@@ -420,10 +462,10 @@ def scout():
                 continue
             if passes(st):
                 scored.append((st["winrate"] * st["net"], addr, st))
-            elif st and len(rejected) < 4:
+            elif st and len(rejected) < 6:
                 rejected.append(
                     f"{short(addr)}: {st['closed']} coins, {st['winrate'] * 100:.0f}% win, "
-                    f"{st['net']:+.1f} SOL, {st['tpd']:.0f} trades/day"
+                    f"{st['net']:+.1f} SOL, {st['swaps']} swaps -> {why(st)}"
                 )
         DEBUG.append(f"Wallets studied: {len(cand_list)}, passed: {len(scored)}")
         if rejected:
