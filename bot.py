@@ -14,16 +14,16 @@ HELIUS_KEY = os.environ.get("HELIUS_KEY", "")
 BOT_TOKEN = os.environ.get("WALLET_BOT_TOKEN", "")
 CHAT_ID = os.environ.get("CHAT_ID", "")
 
-MIN_LIQ = float(os.environ.get("MIN_LIQUIDITY_USD", "15000"))   # coin safety + scouting filter
+MIN_LIQ = float(os.environ.get("MIN_LIQUIDITY_USD", "8000"))   # coin safety + scouting filter
 MIN_SOL = float(os.environ.get("MIN_TRADE_SOL", "0.5"))         # ignore tiny trades
 MAX_WALLETS = int(os.environ.get("MAX_WALLETS", "8"))           # how many wallets to follow
 HISTORY_TXS = int(os.environ.get("HISTORY_TXS", "200"))         # past txs studied per wallet
-MIN_CLOSED = int(os.environ.get("MIN_CLOSED", "6"))             # min coins bought AND sold
-MIN_WINRATE = float(os.environ.get("MIN_WINRATE", "0.55"))
-MIN_NET_SOL = float(os.environ.get("MIN_NET_SOL", "2"))         # min total profit in SOL
+MIN_CLOSED = int(os.environ.get("MIN_CLOSED", "4"))             # min coins bought AND sold
+MIN_WINRATE = float(os.environ.get("MIN_WINRATE", "0.45"))
+MIN_NET_SOL = float(os.environ.get("MIN_NET_SOL", "0.5"))         # min total profit in SOL
 MAX_TRADES_PER_DAY = float(os.environ.get("MAX_TRADES_PER_DAY", "120"))  # above this = another bot
 MAX_TOP_SHARE = float(os.environ.get("MAX_TOP_SHARE", "0.6"))   # one coin can't be >60% of profit
-MIN_PUMP_PCT = float(os.environ.get("MIN_PUMP_PCT", "50"))      # coin must be up this % in 24h
+MIN_PUMP_PCT = float(os.environ.get("MIN_PUMP_PCT", "30"))      # coin must be up this % in 24h
 POOLS_TO_SCAN = int(os.environ.get("POOLS_TO_SCAN", "10"))
 MAX_CANDIDATES = int(os.environ.get("MAX_CANDIDATES", "25"))
 SLIPPAGE_PENALTY = 3.0
@@ -290,6 +290,9 @@ def passes(st):
     )
 
 
+DEBUG = []
+
+
 def gt(path, params=None):
     for attempt in range(5):
         time.sleep(4 + attempt * 8)  # wait longer after each block
@@ -321,12 +324,15 @@ def find_candidates():
         if ch >= MIN_PUMP_PCT and liq >= MIN_LIQ:
             good.append((ch, a["address"]))
     good.sort(reverse=True)
+    DEBUG.append(f"Trending coins: {len(pools)}, pumped enough: {len(good)}")
+    errs = 0
     cands = {}
     for ch, addr in good[:POOLS_TO_SCAN]:
         try:
             trades = gt(f"/networks/solana/pools/{addr}/trades", {"trade_volume_in_usd_greater_than": 50}).get("data", [])
         except Exception as e:
             print("trades error", e)
+            errs += 1
             continue
         agg = {}
         for t in trades:
@@ -338,6 +344,7 @@ def find_candidates():
         for who, d in agg.items():
             if d["buy"] > 0 and d["sell"] > d["buy"] * 1.2:  # bought, then sold higher
                 cands[who] = cands.get(who, 0) + d["sell"] - d["buy"]
+    DEBUG.append(f"Coin lookups failed: {errs}, profitable wallets found: {len(cands)}")
     return sorted(cands, key=cands.get, reverse=True)[:MAX_CANDIDATES]
 
 
@@ -401,7 +408,9 @@ def scout():
     # 2) find and add new winners
     if len(wallets) < MAX_WALLETS:
         scored = []
-        for addr in find_candidates():
+        rejected = []
+        cand_list = find_candidates()
+        for addr in cand_list:
             if addr in wallets:
                 continue
             try:
@@ -411,6 +420,14 @@ def scout():
                 continue
             if passes(st):
                 scored.append((st["winrate"] * st["net"], addr, st))
+            elif st and len(rejected) < 4:
+                rejected.append(
+                    f"{short(addr)}: {st['closed']} coins, {st['winrate'] * 100:.0f}% win, "
+                    f"{st['net']:+.1f} SOL, {st['tpd']:.0f} trades/day"
+                )
+        DEBUG.append(f"Wallets studied: {len(cand_list)}, passed: {len(scored)}")
+        if rejected:
+            DEBUG.append("Examples rejected:\n" + "\n".join(rejected))
         scored.sort(reverse=True)
         for _, addr, st in scored:
             if len(wallets) >= MAX_WALLETS:
@@ -422,7 +439,7 @@ def scout():
             )
 
     save_json(WALLETS_FILE, wallets)
-    tg_send("🔎 Daily scout\n" + ("\n".join(report) if report else "No changes.") + f"\nFollowing {len(wallets)} wallets.")
+    tg_send("🔎 Daily scout\n" + ("\n".join(report) if report else "No changes.") + f"\nFollowing {len(wallets)} wallets.\n\n" + "\n".join(DEBUG))
     check_report(send=True)
 
 
