@@ -25,7 +25,7 @@ MAX_TRADES_PER_DAY = float(os.environ.get("MAX_TRADES_PER_DAY", "120"))  # above
 MAX_TOP_SHARE = float(os.environ.get("MAX_TOP_SHARE", "0.7"))   # one coin can't be >60% of profit
 MIN_PUMP_PCT = float(os.environ.get("MIN_PUMP_PCT", "30"))      # coin must be up this % in 24h
 POOLS_TO_SCAN = int(os.environ.get("POOLS_TO_SCAN", "10"))
-MAX_CANDIDATES = int(os.environ.get("MAX_CANDIDATES", "25"))
+MAX_CANDIDATES = int(os.environ.get("MAX_CANDIDATES", "60"))
 SLIPPAGE_PENALTY = 3.0
 SOL_MINT = "So11111111111111111111111111111111111111112"
 
@@ -385,9 +385,12 @@ def find_candidates():
             agg.setdefault(who, {"buy": 0, "sell": 0})[kind] += float(a.get("volume_in_usd") or 0)
         for who, d in agg.items():
             if d["buy"] > 0 and d["sell"] > d["buy"] * 1.2:  # bought, then sold higher
-                cands[who] = cands.get(who, 0) + d["sell"] - d["buy"]
+                c = cands.setdefault(who, [0, 0.0])
+                c[0] += 1  # number of pumped coins this wallet profited on
+                c[1] += d["sell"] - d["buy"]
     DEBUG.append(f"Coin lookups failed: {errs}, profitable wallets found: {len(cands)}")
-    return sorted(cands, key=cands.get, reverse=True)[:MAX_CANDIDATES]
+    # wallets that profited on MORE different coins come first (consistency beats one big win)
+    return sorted(cands, key=lambda w: (cands[w][0], cands[w][1]), reverse=True)[:MAX_CANDIDATES]
 
 
 def perf_by_wallet():
