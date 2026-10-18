@@ -4,6 +4,11 @@ Solana wallet scout + alert bot (ALERTS ONLY - never trades, never touches keys)
 python bot.py watch   -> check watched wallets for new trades, send Telegram alerts
 python bot.py scout   -> find new winning wallets, drop weak ones, send scoreboard
 python bot.py check   -> print the scoreboard
+python bot.py coins   -> scan trending coins, send BUY SIGNALS, track how past signals did
+python bot.py signals -> print how past coin signals performed
+
+Extra filters on coin signals: holder concentration (RugCheck), listed socials (DexScreener),
+SOL market-mood pause. KOL wallets: put "ADDRESS name" lines in state/kols.txt.
 
 Needs env vars: HELIUS_KEY, WALLET_BOT_TOKEN, CHAT_ID
 State lives in the state/ folder (wallets.json, seen.json, alerts.jsonl).
@@ -27,6 +32,26 @@ MIN_PUMP_PCT = float(os.environ.get("MIN_PUMP_PCT", "30"))      # coin must be u
 POOLS_TO_SCAN = int(os.environ.get("POOLS_TO_SCAN", "10"))
 MAX_CANDIDATES = int(os.environ.get("MAX_CANDIDATES", "60"))
 SLIPPAGE_PENALTY = 3.0
+
+# coin-signal filters (all tunable)
+SIG_MIN_LIQ = float(os.environ.get("SIG_MIN_LIQ", "15000"))
+SIG_MIN_AGE_H = float(os.environ.get("SIG_MIN_AGE_H", "1"))
+SIG_MAX_AGE_H = float(os.environ.get("SIG_MAX_AGE_H", "72"))
+SIG_MIN_H1 = float(os.environ.get("SIG_MIN_H1", "5"))            # 1h change: momentum started...
+SIG_MAX_H1 = float(os.environ.get("SIG_MAX_H1", "150"))          # ...but not already parabolic
+SIG_MAX_H24 = float(os.environ.get("SIG_MAX_H24", "800"))
+SIG_MIN_BUYERS = int(os.environ.get("SIG_MIN_BUYERS", "30"))     # different buyers in last hour
+SIG_MIN_BUY_RATIO = float(os.environ.get("SIG_MIN_BUY_RATIO", "0.55"))
+SIG_MIN_VOL_LIQ = float(os.environ.get("SIG_MIN_VOL_LIQ", "0.3"))
+SIG_MIN_MCAP = float(os.environ.get("SIG_MIN_MCAP", "50000"))
+SIG_MAX_MCAP = float(os.environ.get("SIG_MAX_MCAP", "10000000"))
+SIG_MAX_PER_RUN = int(os.environ.get("SIG_MAX_PER_RUN", "3"))
+SIG_COOLDOWN_H = float(os.environ.get("SIG_COOLDOWN_H", "24"))   # don't repeat a coin within this
+SIG_MAX_TOP10 = float(os.environ.get("SIG_MAX_TOP10", "50"))     # top-10 holders may own at most this %
+MOOD_MIN_H1 = float(os.environ.get("MOOD_MIN_H1", "-3"))         # pause signals if SOL falls more than this in 1h
+MOOD_MIN_H6 = float(os.environ.get("MOOD_MIN_H6", "-6"))         # ...or this much in 6h
+CONFLUENCE_MIN = int(os.environ.get("CONFLUENCE_MIN", "2"))      # followed wallets buying same coin
+CONFLUENCE_HOURS = float(os.environ.get("CONFLUENCE_HOURS", "6"))
 SOL_MINT = "So11111111111111111111111111111111111111112"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -35,6 +60,9 @@ os.makedirs(STATE, exist_ok=True)
 WALLETS_FILE = os.path.join(STATE, "wallets.json")
 SEEN_FILE = os.path.join(STATE, "seen.json")
 LOG_FILE = os.path.join(STATE, "alerts.jsonl")
+SIGNALS_FILE = os.path.join(STATE, "signals.jsonl")
+KOLS_FILE = os.path.join(STATE, "kols.txt")
+MOOD_FILE = os.path.join(STATE, "mood.json")
 
 
 # ---------- small helpers ----------
@@ -67,6 +95,22 @@ def tg_send(text):
         data={"chat_id": CHAT_ID, "text": text[:4000], "disable_web_page_preview": True},
         timeout=20,
     )
+
+
+def wallet_list_text(wallets):
+    lines = [f"👀 Following {len(wallets)} wallets:"]
+    for i, (addr, info) in enumerate(wallets.items(), 1):
+        lines.append(f"{i}. {info.get('label', short(addr))}\n{addr}")
+    return "\n".join(lines)
+
+
+def fmt_usd(n):
+    if not n:
+        return "unknown"
+    for div, suffix in ((1e9, "B"), (1e6, "M"), (1e3, "K")):
+        if n >= div:
+            return f"${n / div:.1f}{suffix}"
+    return f"${n:.0f}"
 
 
 def short(addr):
@@ -180,20 +224,69 @@ def dex_info(mint):
         return {
             "symbol": best.get("baseToken", {}).get("symbol", "?"),
             "price": float(best.get("priceUsd") or 0),
+            "mcap": best.get("marketCap") or best.get("fdv") or 0,
             "liq": (best.get("liquidity") or {}).get("usd", 0) or 0,
             "created": best.get("pairCreatedAt"),
             "url": best.get("url", ""),
+            "socials": [str(x.get("type", "")).lower() for x in ((best.get("info") or {}).get("socials") or [])],
+            "website": bool((best.get("info") or {}).get("websites")),
+        }
+    except Exception:
+        return None
+
+
+def rug_report(mint):
+    """RugCheck full report: danger flags + holder concentration. None if unavailable."""
+    try:
+        r = requests.get(f"https://api.rugcheck.xyz/v1/tokens/{mint}/report", timeout=25).json()
+        if not isinstance(r, dict) or ("risks" not in r and "topHolders" not in r):
+            return None
+        danger = [x.get("name", "?") for x in (r.get("risks") or []) if x.get("level") == "danger"]
+        if r.get("rugged"):
+            danger.append("already rugged")
+        pools, lp_locked = set(), None
+        for mk in r.get("markets") or []:
+            for k in ("pubkey", "liquidityA", "liquidityB"):
+                if mk.get(k):
+                    pools.add(mk[k])
+            lp = mk.get("lp") or {}
+            if lp.get("lpLockedPct") is not None:
+                lp_locked = max(lp_locked or 0, float(lp["lpLockedPct"]))
+        top = r.get("topHolders")
+        holders = [h for h in (top or []) if h.get("address") not in pools and h.get("owner") not in pools]
+        return {
+            "danger": danger,
+            "top10": sum(float(h.get("pct") or 0) for h in holders[:10]) if top else None,
+            "insiders": sum(1 for h in holders[:20] if h.get("insider")),
+            "lp_locked": lp_locked,
         }
     except Exception:
         return None
 
 
 def rug_risks(mint):
-    try:
-        r = requests.get(f"https://api.rugcheck.xyz/v1/tokens/{mint}/report/summary", timeout=20).json()
-        return [x.get("name", "?") for x in r.get("risks", []) if x.get("level") == "danger"]
-    except Exception:
-        return None
+    rep = rug_report(mint)
+    return rep["danger"] if rep else None
+
+
+def holder_line(rep):
+    if not rep or rep.get("top10") is None:
+        return ""
+    t = f"👥 Top 10 holders own {rep['top10']:.0f}%"
+    if rep.get("insiders"):
+        t += f" ({rep['insiders']} flagged insider{'s' if rep['insiders'] != 1 else ''})"
+    if rep.get("lp_locked") is not None:
+        t += f", LP locked {rep['lp_locked']:.0f}%"
+    return t + "\n"
+
+
+def social_line(info):
+    if not info:
+        return ""
+    names = [{"twitter": "X", "telegram": "Telegram"}.get(x, x.capitalize()) for x in info.get("socials", []) if x]
+    if info.get("website"):
+        names.append("website")
+    return ("🔗 " + ", ".join(names) if names else "🔗 No socials listed") + "\n"
 
 
 def verdict(info, risks):
@@ -214,35 +307,66 @@ def verdict(info, risks):
 
 
 # ---------- WATCH ----------
-def handle_tx(tx, wallet, label):
+def handle_tx(tx, wallet, label, group=""):
     if time.time() - tx.get("timestamp", time.time()) > 1800:
         return  # too old to be useful
     s = parse_swap(tx, wallet)
     if not s or s["sol"] < MIN_SOL:
         return
+    if group == "kol":
+        label = "🎤 " + label
     info = dex_info(s["mint"])
-    risks = rug_risks(s["mint"]) if s["side"] == "BUY" else []
+    rep_ = rug_report(s["mint"]) if s["side"] == "BUY" else None
+    risks = ((rep_["danger"] if rep_ else None) if s["side"] == "BUY" else [])
     v, flags = verdict(info, risks)
+    if rep_ and rep_.get("top10") is not None and rep_["top10"] > SIG_MAX_TOP10:
+        v = v.replace("✅ Looks OK", "⚠️ Holders concentrated")
+        flags.append("holders concentrated")
+    extra = (holder_line(rep_) + social_line(info)) if s["side"] == "BUY" else ""
     sym = info["symbol"] if info else "?"
     price = info["price"] if info else 0
     tg_send(
         f"{'🟢 BUY' if s['side'] == 'BUY' else '🔴 SELL'}  {sym}\n"
-        f"Wallet: {label}\nSize: {s['sol']:.2f} SOL\nPrice now: ${price}\n{v}\n"
+        f"Wallet: {label}\n{wallet}\nSize: {s['sol']:.2f} SOL\nMarket cap: {fmt_usd(info['mcap'] if info else 0)}\n{v}\n{extra}"
         f"{info['url'] if info else 'https://dexscreener.com/solana/' + s['mint']}"
     )
     with open(LOG_FILE, "a") as f:
         f.write(json.dumps({
             "t": time.time(), "wallet": wallet, "label": label, "side": s["side"],
             "mint": s["mint"], "symbol": sym, "sol": s["sol"],
-            "entry_price": price, "flagged": bool(flags),
+            "entry_price": price, "flagged": bool(flags), "group": group,
         }) + "\n")
+    if s["side"] == "BUY" and info:
+        confluence_check(s["mint"], sym, info, v)
+
+
+def load_kols():
+    """state/kols.txt: one 'ADDRESS name' per line. These are never dropped by the scout."""
+    out = {}
+    try:
+        with open(KOLS_FILE) as f:
+            for line in f:
+                parts = line.strip().split()
+                if parts and not parts[0].startswith("#"):
+                    out[parts[0]] = {"label": parts[1] if len(parts) > 1 else short(parts[0]),
+                                     "manual": True, "group": "kol"}
+    except FileNotFoundError:
+        pass
+    return out
+
+
+def n_auto(wallets):
+    return sum(1 for w in wallets.values() if not w.get("manual"))
 
 
 def watch():
     wallets = load_json(WALLETS_FILE, {})
+    wallets.update(load_kols())
     if not wallets:
         print("No wallets yet. Run the 'scout' workflow first.")
         return
+    if os.environ.get("SEND_LIST") == "true":
+        tg_send(wallet_list_text(wallets))
     seen = load_json(SEEN_FILE, {})
     for addr, info in wallets.items():
         try:
@@ -259,7 +383,7 @@ def watch():
             sigs = [s["signature"] for s in reversed(page) if not s.get("err")]
             txs = sorted(parse_txs(sigs), key=lambda t: t.get("timestamp", 0))
             for tx in txs:
-                handle_tx(tx, addr, info.get("label", short(addr)))
+                handle_tx(tx, addr, info.get("label", short(addr)), info.get("group", ""))
         except Exception as e:
             print(f"{short(addr)}: error {e}")
     save_json(SEEN_FILE, seen)
@@ -389,108 +513,4 @@ def find_candidates():
                 c[0] += 1  # number of pumped coins this wallet profited on
                 c[1] += d["sell"] - d["buy"]
     DEBUG.append(f"Coin lookups failed: {errs}, profitable wallets found: {len(cands)}")
-    # wallets that profited on MORE different coins come first (consistency beats one big win)
-    return sorted(cands, key=lambda w: (cands[w][0], cands[w][1]), reverse=True)[:MAX_CANDIDATES]
-
-
-def perf_by_wallet():
-    """How did coins bought after our alerts perform? (after slippage penalty)"""
-    try:
-        with open(LOG_FILE) as f:
-            rows = [json.loads(l) for l in f if l.strip()]
-    except FileNotFoundError:
-        return {}
-    cache, out = {}, {}
-    for r in rows:
-        if r["side"] != "BUY" or not r["entry_price"] or time.time() - r["t"] < 3600:
-            continue
-        if r["mint"] not in cache:
-            cache[r["mint"]] = dex_info(r["mint"])
-        info = cache[r["mint"]]
-        pct = -100.0 if not info or not info["price"] else (info["price"] / r["entry_price"] - 1) * 100
-        d = out.setdefault(r["wallet"], {"label": r["label"], "pcts": []})
-        d["pcts"].append(pct - SLIPPAGE_PENALTY)
-    return out
-
-
-def check_report(send=False):
-    perf = perf_by_wallet()
-    if not perf:
-        print("Nothing scored yet (alerts need 1h+ to age).")
-        return
-    lines = [f"📊 Wallet scoreboard (after {SLIPPAGE_PENALTY:.0f}% slippage)"]
-    for d in sorted(perf.values(), key=lambda d: -sum(d["pcts"]) / len(d["pcts"])):
-        v = d["pcts"]
-        wins = sum(1 for p in v if p > 0) / len(v) * 100
-        lines.append(f"{d['label']}: {len(v)} buys, {wins:.0f}% win, avg {sum(v) / len(v):+.1f}%")
-    text = "\n".join(lines)
-    print(text)
-    if send:
-        tg_send(text)
-
-
-def scout():
-    wallets = load_json(WALLETS_FILE, {})
-    perf = perf_by_wallet()
-    report = []
-
-    # 1) drop weak wallets
-    for addr, info in list(wallets.items()):
-        if info.get("manual"):
-            continue
-        try:
-            st = wallet_stats(addr)
-        except Exception as e:
-            print("recheck error", e)
-            continue
-        p = perf.get(addr, {}).get("pcts", [])
-        bad_history = st is not None and not passes(st)
-        bad_alerts = len(p) >= 5 and sum(p) / len(p) < -10
-        if bad_history or bad_alerts:
-            del wallets[addr]
-            report.append(f"❌ Dropped {info.get('label', short(addr))}")
-
-    # 2) find and add new winners
-    if len(wallets) < MAX_WALLETS:
-        scored = []
-        rejected = []
-        cand_list = find_candidates()
-        for addr in cand_list:
-            if addr in wallets:
-                continue
-            try:
-                st = wallet_stats(addr)
-            except Exception as e:
-                print("stats error", e)
-                continue
-            if passes(st):
-                scored.append((st["winrate"] * st["net"], addr, st))
-            elif st and len(rejected) < 6:
-                rejected.append(
-                    f"{short(addr)}: {st['closed']} coins, {st['winrate'] * 100:.0f}% win, "
-                    f"{st['net']:+.1f} SOL, {st['swaps']} swaps -> {why(st)}"
-                )
-        DEBUG.append(f"Wallets studied: {len(cand_list)}, passed: {len(scored)}")
-        if rejected:
-            DEBUG.append("Examples rejected:\n" + "\n".join(rejected))
-        scored.sort(reverse=True)
-        for _, addr, st in scored:
-            if len(wallets) >= MAX_WALLETS:
-                break
-            wallets[addr] = {"label": short(addr), "added": time.time()}
-            report.append(
-                f"✅ Added {short(addr)}: {st['closed']} coins, "
-                f"{st['winrate'] * 100:.0f}% win, {st['net']:+.1f} SOL"
-            )
-
-    save_json(WALLETS_FILE, wallets)
-    tg_send("🔎 Daily scout\n" + ("\n".join(report) if report else "No changes.") + f"\nFollowing {len(wallets)} wallets.\n\n" + "\n".join(DEBUG))
-    check_report(send=True)
-
-
-if __name__ == "__main__":
-    mode = sys.argv[1] if len(sys.argv) > 1 else "watch"
-    if mode != "check" and not (HELIUS_KEY and BOT_TOKEN):
-        print("Set HELIUS_KEY and WALLET_BOT_TOKEN.")
-        sys.exit(1)
-    {"watch": watch, "scout": scout, "check": check_report}[mode]()
+    # wallets that profit
