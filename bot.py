@@ -513,4 +513,342 @@ def find_candidates():
                 c[0] += 1  # number of pumped coins this wallet profited on
                 c[1] += d["sell"] - d["buy"]
     DEBUG.append(f"Coin lookups failed: {errs}, profitable wallets found: {len(cands)}")
-    # wallets that profit
+    # wallets that profited on MORE different coins come first (consistency beats one big win)
+    return sorted(cands, key=lambda w: (cands[w][0], cands[w][1]), reverse=True)[:MAX_CANDIDATES]
+
+
+def perf_by_wallet():
+    """How did coins bought after our alerts perform? (after slippage penalty)"""
+    try:
+        with open(LOG_FILE) as f:
+            rows = [json.loads(l) for l in f if l.strip()]
+    except FileNotFoundError:
+        return {}
+    cache, out = {}, {}
+    for r in rows:
+        if r["side"] != "BUY" or not r["entry_price"] or time.time() - r["t"] < 3600:
+            continue
+        if r["mint"] not in cache:
+            cache[r["mint"]] = dex_info(r["mint"])
+        info = cache[r["mint"]]
+        pct = -100.0 if not info or not info["price"] else (info["price"] / r["entry_price"] - 1) * 100
+        d = out.setdefault(r["wallet"], {"label": r["label"], "pcts": [], "group": r.get("group", "")})
+        d["pcts"].append(pct - SLIPPAGE_PENALTY)
+    return out
+
+
+def check_report(send=False):
+    perf = perf_by_wallet()
+    if not perf:
+        print("Nothing scored yet (alerts need 1h+ to age).")
+        return
+    lines = [f"📊 Wallet scoreboard (after {SLIPPAGE_PENALTY:.0f}% slippage)"]
+    for grp, title in (("", "Scouted wallets"), ("kol", "🎤 KOL wallets")):
+        items = [d for d in perf.values() if d.get("group", "") == grp]
+        if not items:
+            continue
+        lines.append(f"-- {title} --")
+        for d in sorted(items, key=lambda d: -sum(d["pcts"]) / len(d["pcts"])):
+            v = d["pcts"]
+            wins = sum(1 for p in v if p > 0) / len(v) * 100
+            lines.append(f"{d['label']}: {len(v)} buys, {wins:.0f}% win, avg {sum(v) / len(v):+.1f}%")
+    text = "\n".join(lines)
+    print(text)
+    if send:
+        tg_send(text)
+
+
+def scout():
+    wallets = load_json(WALLETS_FILE, {})
+    perf = perf_by_wallet()
+    report = []
+
+    # 1) drop weak wallets
+    for addr, info in list(wallets.items()):
+        if info.get("manual"):
+            continue
+        try:
+            st = wallet_stats(addr)
+        except Exception as e:
+            print("recheck error", e)
+            continue
+        p = perf.get(addr, {}).get("pcts", [])
+        bad_history = st is not None and not passes(st)
+        bad_alerts = len(p) >= 5 and sum(p) / len(p) < -10
+        if bad_history or bad_alerts:
+            del wallets[addr]
+            report.append(f"❌ Dropped {info.get('label', short(addr))}")
+
+    # 2) find and add new winners
+    kols = load_kols()
+    if n_auto(wallets) < MAX_WALLETS:
+        scored = []
+        rejected = []
+        cand_list = find_candidates()
+        for addr in cand_list:
+            if addr in wallets or addr in kols:
+                continue
+            try:
+                st = wallet_stats(addr)
+            except Exception as e:
+                print("stats error", e)
+                continue
+            if passes(st):
+                scored.append((st["winrate"] * st["net"], addr, st))
+            elif st and len(rejected) < 6:
+                rejected.append(
+                    f"{short(addr)}: {st['closed']} coins, {st['winrate'] * 100:.0f}% win, "
+                    f"{st['net']:+.1f} SOL, {st['swaps']} swaps -> {why(st)}"
+                )
+        DEBUG.append(f"Wallets studied: {len(cand_list)}, passed: {len(scored)}")
+        if rejected:
+            DEBUG.append("Examples rejected:\n" + "\n".join(rejected))
+        scored.sort(reverse=True)
+        for _, addr, st in scored:
+            if n_auto(wallets) >= MAX_WALLETS:
+                break
+            wallets[addr] = {"label": short(addr), "added": time.time()}
+            report.append(
+                f"✅ Added {addr}: {st['closed']} coins, "
+                f"{st['winrate'] * 100:.0f}% win, {st['net']:+.1f} SOL"
+            )
+
+    save_json(WALLETS_FILE, wallets)
+    tg_send("🔎 Daily scout\n" + ("\n".join(report) if report else "No changes.") + "\n\n" + wallet_list_text({**wallets, **kols}) + "\n\n" + "\n".join(DEBUG))
+    check_report(send=True)
+    update_outcomes()
+    signal_report(send=True)
+
+
+
+# ---------- COIN SIGNALS ----------
+def load_signals():
+    rows = []
+    try:
+        with open(SIGNALS_FILE) as f:
+            for l in f:
+                if l.strip():
+                    rows.append(json.loads(l))
+    except FileNotFoundError:
+        pass
+    return rows
+
+
+def save_signals(rows):
+    with open(SIGNALS_FILE, "w") as f:
+        for r in rows[-600:]:
+            f.write(json.dumps(r) + "\n")
+
+
+def add_signal(row):
+    with open(SIGNALS_FILE, "a") as f:
+        f.write(json.dumps(row) + "\n")
+
+
+def followed_buys():
+    """mint -> set of followed-wallet labels that bought it recently."""
+    out = {}
+    try:
+        with open(LOG_FILE) as f:
+            for l in f:
+                if not l.strip():
+                    continue
+                r = json.loads(l)
+                if r["side"] == "BUY" and time.time() - r["t"] < CONFLUENCE_HOURS * 3600:
+                    out.setdefault(r["mint"], set()).add(r["label"])
+    except FileNotFoundError:
+        pass
+    return out
+
+
+def confluence_check(mint, sym, info, v):
+    """If several followed wallets bought the same coin, send a stronger signal."""
+    who = followed_buys().get(mint, set())
+    if len(who) < CONFLUENCE_MIN:
+        return
+    cutoff = time.time() - 12 * 3600
+    if any(r["mint"] == mint and r["type"] == "confluence" and r["t"] > cutoff for r in load_signals()):
+        return
+    tg_send(
+        f"🔥 STRONG BUY SIGNAL  {sym}\n"
+        f"{len(who)} of your followed wallets bought it within {CONFLUENCE_HOURS:.0f}h:\n"
+        f"{', '.join(sorted(who))}\n"
+        f"Market cap: {fmt_usd(info['mcap'])}   Liquidity: {fmt_usd(info['liq'])}\n{v}\n{info['url']}\n\n"
+        f"Paper-test only. Memecoins can fall 50%+ in minutes."
+    )
+    add_signal({"t": time.time(), "type": "confluence", "mint": mint, "symbol": sym,
+                "entry_price": info["price"], "entry_mcap": info["mcap"]})
+
+
+def _age_hours(created):
+    try:
+        from datetime import datetime
+        dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
+        return (time.time() - dt.timestamp()) / 3600
+    except Exception:
+        return None
+
+
+def pct(x):
+    try:
+        return float(x)
+    except Exception:
+        return 0.0
+
+
+def sol_trend():
+    """(1h %, 6h %, 24h %) change of SOL, or None."""
+    try:
+        r = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{SOL_MINT}", timeout=20).json()
+        best = max(r.get("pairs") or [], key=lambda p: (p.get("liquidity") or {}).get("usd", 0) or 0)
+        ch = best.get("priceChange") or {}
+        return pct(ch.get("h1")), pct(ch.get("h6")), pct(ch.get("h24"))
+    except Exception:
+        return None
+
+
+def scan_coins():
+    """Look at trending Solana pools, keep ones with healthy momentum and safe-looking numbers."""
+    trend = sol_trend()
+    paused = bool(trend and (trend[0] <= MOOD_MIN_H1 or trend[1] <= MOOD_MIN_H6))
+    was = load_json(MOOD_FILE, {}).get("paused", False)
+    if paused != was:
+        save_json(MOOD_FILE, {"paused": paused})
+        tg_send("⏸ Coin signals paused: SOL is dropping (%+.1f%% 1h, %+.1f%% 6h)." % (trend[0], trend[1])
+                if paused else "▶️ Coin signals resumed: SOL has stabilised.")
+    if paused:
+        print(f"scan skipped: SOL is falling ({trend[0]:+.1f}% 1h, {trend[1]:+.1f}% 6h)")
+        return
+    pools = []
+    for path in ("/networks/solana/trending_pools", "/networks/solana/new_pools"):
+        try:
+            pools += gt(path, {"page": 1}).get("data", [])
+        except Exception as e:
+            print("scan error", e)
+    recent = {r["mint"] for r in load_signals() if time.time() - r["t"] < SIG_COOLDOWN_H * 3600}
+    followed = followed_buys()
+    seen, cands, why_not = set(), [], {}
+
+    def no(reason):
+        why_not[reason] = why_not.get(reason, 0) + 1
+
+    for p in pools:
+        a = p.get("attributes", {}) or {}
+        base = ((p.get("relationships", {}).get("base_token", {}) or {}).get("data", {}) or {}).get("id", "")
+        mint = base.replace("solana_", "")
+        if not mint or mint in seen:
+            continue
+        seen.add(mint)
+        if mint in recent:
+            no("already signalled"); continue
+        liq = pct(a.get("reserve_in_usd"))
+        mcap = pct(a.get("market_cap_usd")) or pct(a.get("fdv_usd"))
+        chg = a.get("price_change_percentage") or {}
+        h1, h24 = pct(chg.get("h1")), pct(chg.get("h24"))
+        tx = (a.get("transactions") or {}).get("h1") or {}
+        buys, sells, buyers = tx.get("buys", 0) or 0, tx.get("sells", 0) or 0, tx.get("buyers", 0) or 0
+        ratio = buys / (buys + sells) if (buys + sells) else 0
+        vol1 = pct((a.get("volume_usd") or {}).get("h1"))
+        age = _age_hours(a.get("pool_created_at", ""))
+        if liq < SIG_MIN_LIQ:
+            no("low liquidity"); continue
+        if age is None or age < SIG_MIN_AGE_H or age > SIG_MAX_AGE_H:
+            no("age out of range"); continue
+        if not (SIG_MIN_MCAP <= mcap <= SIG_MAX_MCAP):
+            no("market cap out of range"); continue
+        if not (SIG_MIN_H1 <= h1 <= SIG_MAX_H1):
+            no("1h move out of range"); continue
+        if h24 > SIG_MAX_H24:
+            no("already pumped too much"); continue
+        if buyers < SIG_MIN_BUYERS:
+            no("few buyers"); continue
+        if ratio < SIG_MIN_BUY_RATIO:
+            no("sellers dominate"); continue
+        if vol1 / liq < SIG_MIN_VOL_LIQ:
+            no("low volume"); continue
+        dinfo = dex_info(mint)
+        has_social = bool(dinfo and (dinfo["socials"] or dinfo["website"]))
+        score = (ratio * 40 + min(vol1 / liq, 3) * 10 + min(buyers, 300) / 10
+                 + (15 if mint in followed else 0) + (5 if has_social else 0))
+        cands.append((score, mint, a, dict(liq=liq, mcap=mcap, h1=h1, h24=h24, buyers=buyers, dinfo=dinfo,
+                                          ratio=ratio, age=age, price=pct(a.get("base_token_price_usd")))))
+    cands.sort(key=lambda c: -c[0])
+
+    sent = 0
+    for score, mint, a, d in cands:
+        if sent >= SIG_MAX_PER_RUN:
+            break
+        rep_ = rug_report(mint)
+        if rep_ and rep_["danger"]:
+            no("RugCheck danger"); continue
+        if rep_ and rep_["top10"] is not None and rep_["top10"] > SIG_MAX_TOP10:
+            no("holders concentrated"); continue
+        sym = (a.get("name") or "?").split(" / ")[0]
+        flag = "✅ No rug flags" if rep_ is not None else "⚠️ Rug check unavailable"
+        who = followed.get(mint)
+        tg_send(
+            f"🚀 BUY SIGNAL  {sym}\n"
+            f"Market cap: {fmt_usd(d['mcap'])}   Liquidity: {fmt_usd(d['liq'])}\n"
+            f"Age: {d['age']:.1f}h\n"
+            f"1h: {d['h1']:+.0f}%   24h: {d['h24']:+.0f}%\n"
+            f"1h buyers: {d['buyers']} ({d['ratio'] * 100:.0f}% of trades are buys)\n"
+            + (f"👀 Also bought by your wallets: {', '.join(sorted(who))}\n" if who else "")
+            + f"{flag}\n{holder_line(rep_)}{social_line(d['dinfo'])}"
+            + (f"Market: SOL {trend[1]:+.1f}% (6h)\n" if trend else "")
+            + f"https://dexscreener.com/solana/{a.get('address', mint)}\n\n"
+            f"Paper-test only. Memecoins can fall 50%+ in minutes."
+        )
+        add_signal({"t": time.time(), "type": "scan", "mint": mint, "symbol": sym,
+                    "entry_price": d["price"], "entry_mcap": d["mcap"]})
+        sent += 1
+    print(f"scan: {len(pools)} pools, {len(cands)} passed filters, {sent} signals sent. Rejected: {why_not}")
+
+
+def update_outcomes():
+    """Fill in the price 1h / 6h / 24h after each signal."""
+    rows = load_signals()
+    cache, changed = {}, False
+    for r in rows:
+        age = time.time() - r["t"]
+        for key, secs in (("p1", 3600), ("p6", 21600), ("p24", 86400)):
+            if r.get(key) is None and age >= secs:
+                if r["mint"] not in cache:
+                    cache[r["mint"]] = dex_info(r["mint"])
+                info = cache[r["mint"]]
+                r[key] = info["price"] if info and info["price"] else 0
+                changed = True
+    if changed:
+        save_signals(rows)
+
+
+def signal_report(send=False):
+    rows = load_signals()
+    lines = []
+    for typ, label in (("scan", "Coin scanner"), ("confluence", "Wallet confluence")):
+        for key, name in (("p1", "1h"), ("p6", "6h"), ("p24", "24h")):
+            vals = []
+            for r in rows:
+                if r["type"] != typ or r.get(key) is None or not r.get("entry_price"):
+                    continue
+                move = -100.0 if r[key] == 0 else (r[key] / r["entry_price"] - 1) * 100
+                vals.append(move - SLIPPAGE_PENALTY)
+            if vals:
+                up = sum(1 for v in vals if v > 0) / len(vals) * 100
+                lines.append(f"{label} after {name}: {len(vals)} signals, {up:.0f}% up, avg {sum(vals) / len(vals):+.1f}%")
+    text = "📈 Coin signal results (after slippage)\n" + "\n".join(lines) if lines else "📈 Coin signals: nothing old enough to score yet."
+    print(text)
+    if send:
+        tg_send(text)
+
+
+def coins():
+    update_outcomes()
+    scan_coins()
+
+
+if __name__ == "__main__":
+    mode = sys.argv[1] if len(sys.argv) > 1 else "watch"
+    if mode != "check" and not (HELIUS_KEY and BOT_TOKEN):
+        print("Set HELIUS_KEY and WALLET_BOT_TOKEN.")
+        sys.exit(1)
+    {"watch": watch, "scout": scout, "check": check_report, "coins": coins, "signals": signal_report}[mode]()
