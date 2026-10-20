@@ -6,4 +6,4 @@
 {"t": 1792479139.8924577, "type": "scan", "mint": "ESnW5ZbLmoEAg2QEMxnMsY9R3aS8Kw58HJacYURmpump", "symbol": "COLLECTOOOR", "entry_price": 0.00044756796294423233, "entry_mcap": 441640.2488, "p1": 0.0004282, "p6": 0.0002312}
 {"t": 1792499058.7217174, "type": "scan", "mint": "EKosQw4oJFbXmeJ4qRnbH1quGFRTc3Eok6nwnFKDpump", "symbol": "startupSI", "entry_price": 0.0011814223183173435, "entry_mcap": 1159964.96629896, "p1": 0.0002297, "p6": 0.0001393}
 {"t": 1792499059.5911486, "type": "scan", "mint": "87sEXKPMBeoryaqFQQnq1Yq6mUvjeNzhiFGxJbRjpump", "symbol": "WORTHLESS", "entry_price": 0.00011351018758714207, "entry_mcap": 108284.0098, "p1": 7.099e-05, "p6": 4.5e-05}
-{"t": 1792517031.8232079, "type": "scan", "mint": "D42TjMjz5H7toPu5md5KBXreZkCSdZMEfLQwmBhJXvb1", "symbol": "Pok\u00e9mon", "entry_price": 0.001631896792835285, "entry_mcap": 1610794.21373841, "p1": 0.0002997}
+{"t": 1792517031.8232079, "type": "scan", "mint": "D42TjMjz5H7toPu5md5KBXreZkCSdZMEfLQwmBhJXvb1", "symbol": "Pok\u00e9mon", "entry_price": 0.001631896792835285, "entry_mcap": 1610794.21373841, "p1": 0.0002997, "p6": 0.000349}
