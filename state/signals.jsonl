@@ -8,5 +8,6 @@
 {"t": 1792499059.5911486, "type": "scan", "mint": "87sEXKPMBeoryaqFQQnq1Yq6mUvjeNzhiFGxJbRjpump", "symbol": "WORTHLESS", "entry_price": 0.00011351018758714207, "entry_mcap": 108284.0098, "p1": 7.099e-05, "p6": 4.5e-05, "p24": 6.982e-05}
 {"t": 1792517031.8232079, "type": "scan", "mint": "D42TjMjz5H7toPu5md5KBXreZkCSdZMEfLQwmBhJXvb1", "symbol": "Pok\u00e9mon", "entry_price": 0.001631896792835285, "entry_mcap": 1610794.21373841, "p1": 0.0002997, "p6": 0.000349, "p24": 0.0002732}
 {"t": 1792616005.324819, "type": "scan", "mint": "D42TjMjz5H7toPu5md5KBXreZkCSdZMEfLQwmBhJXvb1", "symbol": "Pok\u00e9mon", "entry_price": 0.000520159369128038, "entry_mcap": 493633.548428119, "p1": 0.0003599, "p6": 0.0003105, "p24": 0.0001888}
-{"t": 1792692308.883583, "type": "scan", "mint": "HqaUT1abZq6WkeRpCYD7yHNdcxgu6biXejNkeJUNpump", "symbol": "VIRTUAL", "entry_price": 0.0002235015950389765, "entry_mcap": 220810.1746, "p1": 0.0003626}
-{"t": 1792704708.7396455, "type": "scan", "mint": "GNE7e774tkGyxMMzP36ofhNuRrUZ15H4e1LE1xekpump", "symbol": "KIMCHIBULL", "entry_price": 0.0005773447385134733, "entry_mcap": 567196.909784172}
+{"t": 1792692308.883583, "type": "scan", "mint": "HqaUT1abZq6WkeRpCYD7yHNdcxgu6biXejNkeJUNpump", "symbol": "VIRTUAL", "entry_price": 0.0002235015950389765, "entry_mcap": 220810.1746, "p1": 0.0003626, "p6": 0.0002441}
+{"t": 1792704708.7396455, "type": "scan", "mint": "GNE7e774tkGyxMMzP36ofhNuRrUZ15H4e1LE1xekpump", "symbol": "KIMCHIBULL", "entry_price": 0.0005773447385134733, "entry_mcap": 567196.909784172, "p1": 0.0006712}
+{"t": 1792714179.370034, "type": "scan", "mint": "CMo7GfUhSGXuEfnY7qAzv8hhsV2M2P8GpWqmWikhpump", "symbol": "CYBER", "entry_price": 0.00027855387856313664, "entry_mcap": 267945.889979675}
