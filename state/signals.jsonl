@@ -15,4 +15,5 @@
 {"t": 1792730584.618371, "type": "scan", "mint": "EhuiZVks9ExNTQUg2ZLeW4SQUMAGiwwhK73rASzBpump", "symbol": "OA", "entry_price": 0.0004755217498557159, "entry_mcap": 470641.765125399, "p1": 3.509e-06, "p6": 4.589e-06, "p24": 8.465e-06}
 {"t": 1792780489.5208776, "type": "scan", "mint": "EU1MHvQvBoJ7DnLorurze1hwR2JWuyoKyAmkwymwpump", "symbol": "\u30e4\u30ae", "entry_price": 0.0010261987024830668, "entry_mcap": 1030915.217, "p1": 0.0006796, "p6": 0.0006763, "p24": 0.000478}
 {"t": 1792791630.0381317, "type": "scan", "mint": "HqaUT1abZq6WkeRpCYD7yHNdcxgu6biXejNkeJUNpump", "symbol": "VIRTUAL", "entry_price": 0.0004857571802570745, "entry_mcap": 427807.983543251, "p1": 0.0002229, "p6": 0.0003024}
-{"t": 1792868058.5782285, "type": "scan", "mint": "9daaq4QBFia2C9BcAEwMP2RfWqseDsTYudqM4Lfmpump", "symbol": "PRIVACY", "entry_price": 5.388036849894699e-05, "entry_mcap": 53875.99681}
+{"t": 1792868058.5782285, "type": "scan", "mint": "9daaq4QBFia2C9BcAEwMP2RfWqseDsTYudqM4Lfmpump", "symbol": "PRIVACY", "entry_price": 5.388036849894699e-05, "entry_mcap": 53875.99681, "p1": 3.541e-05}
+{"t": 1792876770.7773705, "type": "scan", "mint": "Bdmz1BAj5B2YbYVdMyZexWbjX33kfhNonHGDtQjipump", "symbol": "COIL", "entry_price": 0.0002648616194324051, "entry_mcap": 248764.1203}
