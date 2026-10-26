@@ -24,4 +24,5 @@
 {"t": 1792970210.88033, "type": "scan", "mint": "AhBidGAgv6QbKSWfrSCegGrzFLcBx4E5FNYTKHNQQj6C", "symbol": "LAUNCH", "entry_price": 0.0014993344199340385, "entry_mcap": 1484192.55349545, "p1": 0.001527, "p6": 0.001469}
 {"t": 1792996626.8552532, "type": "scan", "mint": "H7VZNCBynDK5ikBS9krDJ2Tx8CUr1wxedV19ZgkWpump", "symbol": "CATTLEAXE", "entry_price": 0.0016951112157458617, "entry_mcap": 1669056.84087283, "p1": 0.0009499, "p6": 0.0008109}
 {"t": 1792996627.477111, "type": "scan", "mint": "CA8q2mkYWZnUNqYmf6pxyxAPZsmSe2EG9P7hHMW5pump", "symbol": "REMUS", "entry_price": 0.0011813047391360633, "entry_mcap": 1163689.92418782, "p1": 0.00107, "p6": 0.0009966}
-{"t": 1793021601.2474926, "type": "scan", "mint": "9gexoGn8qnxT1XpncwNXJDwQci9cPGuNXG3uNfDkpump", "symbol": "GME", "entry_price": 0.00010618994854064404, "entry_mcap": 106189.9485}
+{"t": 1793021601.2474926, "type": "scan", "mint": "9gexoGn8qnxT1XpncwNXJDwQci9cPGuNXG3uNfDkpump", "symbol": "GME", "entry_price": 0.00010618994854064404, "entry_mcap": 106189.9485, "p1": 9.258e-05, "p6": 9.258e-05}
+{"t": 1793043234.6638975, "type": "scan", "mint": "3LPTanzycRAjguU6VAXE7T2Fd12LePQLpHATXXs9pump", "symbol": "PRESIDENT", "entry_price": 0.00016610617894298663, "entry_mcap": 166106.1789}
