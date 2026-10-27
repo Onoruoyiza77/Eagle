@@ -27,5 +27,5 @@
 {"t": 1793021601.2474926, "type": "scan", "mint": "9gexoGn8qnxT1XpncwNXJDwQci9cPGuNXG3uNfDkpump", "symbol": "GME", "entry_price": 0.00010618994854064404, "entry_mcap": 106189.9485, "p1": 9.258e-05, "p6": 9.258e-05, "p24": 5.439e-05}
 {"t": 1793043234.6638975, "type": "scan", "mint": "3LPTanzycRAjguU6VAXE7T2Fd12LePQLpHATXXs9pump", "symbol": "PRESIDENT", "entry_price": 0.00016610617894298663, "entry_mcap": 166106.1789, "p1": 0.000171, "p6": 0.0002214}
 {"t": 1793067216.0718305, "type": "scan", "mint": "EwX2T1p2PmgTsSq2Bi6XtQYxPC5krR4P2fxPfN4Qpump", "symbol": "\u2588\u2588\u2588", "entry_price": 0.0011794689306781146, "entry_mcap": 1179468.931, "p1": 0.0009731, "p6": 0.000947}
-{"t": 1793108783.3897998, "type": "scan", "mint": "27Qg7EcnGfmbthfQeQXTs4qjfnvU6gXf8W1ahJiJpump", "symbol": "ELON2028", "entry_price": 0.00015851301762350538, "entry_mcap": 154353.240675925}
-{"t": 1793108784.2838671, "type": "scan", "mint": "EKZGtEsT2VbXH6car15x2zMHyeiYkB28DvMnBZqRpump", "symbol": "wiener", "entry_price": 7.681025163959724e-05, "entry_mcap": 76810.25164}
+{"t": 1793108783.3897998, "type": "scan", "mint": "27Qg7EcnGfmbthfQeQXTs4qjfnvU6gXf8W1ahJiJpump", "symbol": "ELON2028", "entry_price": 0.00015851301762350538, "entry_mcap": 154353.240675925, "p1": 9.244e-05}
+{"t": 1793108784.2838671, "type": "scan", "mint": "EKZGtEsT2VbXH6car15x2zMHyeiYkB28DvMnBZqRpump", "symbol": "wiener", "entry_price": 7.681025163959724e-05, "entry_mcap": 76810.25164, "p1": 6.089e-05}
