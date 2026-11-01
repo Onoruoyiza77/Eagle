@@ -33,8 +33,8 @@
 {"t": 1793174351.1110928, "type": "scan", "mint": "Pmfm2RprxQRKZH1XWVsBUc2KgCTyzeDTSFbT1vJmogz", "symbol": "MOGZ", "entry_price": 0.00035069824295892764, "entry_mcap": 350698.243, "p1": 0.000509, "p6": 0.0006017, "p24": 0.0003357}
 {"t": 1793217553.7124612, "type": "scan", "mint": "69Y6D9xQKkDYPvESDiKaQpU9Z5FXzY8LB7PthQkmpump", "symbol": "Rapport", "entry_price": 0.00011659107447423031, "entry_mcap": 116661.5758, "p1": 0.0001054, "p6": 5.94e-05, "p24": 2.868e-06}
 {"t": 1793345279.2920046, "type": "scan", "mint": "3w2TvVmTrtq4kSkoFVrTFQgz6MX7ThzDVrx9r5c3pump", "symbol": "HI", "entry_price": 0.0010815179748859109, "entry_mcap": 1115587.4499833, "p1": 0.001035, "p6": 0.00076, "p24": 0.0006576}
-{"t": 1793435825.7881405, "type": "scan", "mint": "DDG8rjV3TViCqKRQED2QZq4MEaE1uqXgEiosBNpapump", "symbol": "AgenC", "entry_price": 0.0005691587254631578, "entry_mcap": 576255.38075211, "p1": 0, "p6": 0.0001274}
+{"t": 1793435825.7881405, "type": "scan", "mint": "DDG8rjV3TViCqKRQED2QZq4MEaE1uqXgEiosBNpapump", "symbol": "AgenC", "entry_price": 0.0005691587254631578, "entry_mcap": 576255.38075211, "p1": 0, "p6": 0.0001274, "p24": 0}
 {"t": 1793495174.5732784, "type": "scan", "mint": "FdKdpz11GsTofLaNiddrhxrsE4APZYSSfLFqQ9YKpump", "symbol": "SIS", "entry_price": 0.0006099965876264409, "entry_mcap": 607720.258237947, "p1": 0.0003931, "p6": 0.0003931}
 {"t": 1793495175.2856786, "type": "scan", "mint": "HvitmAeh6TkToQonoiNwqWcrZsYdYiaSZHP7yMmspump", "symbol": "LUMI", "entry_price": 7.700413983118072e-05, "entry_mcap": 76624.0354990061, "p1": 7.061e-05, "p6": 7.061e-05}
-{"t": 1793518159.059072, "type": "scan", "mint": "CPoGSmcjprCvzA2MFYLJMpQkGjmgVzKg4RVwMdrzpump", "symbol": "BLUE", "entry_price": 0.0003581031624088164, "entry_mcap": 355820.942193885}
-{"t": 1793518160.084227, "type": "scan", "mint": "GYKnd6jGUSQoBUnj6LdGCBtCWYDgr2Zd6QwNPcy5pump", "symbol": "AAPLCAT", "entry_price": 0.000962364948736096, "entry_mcap": 954531.636684157}
+{"t": 1793518159.059072, "type": "scan", "mint": "CPoGSmcjprCvzA2MFYLJMpQkGjmgVzKg4RVwMdrzpump", "symbol": "BLUE", "entry_price": 0.0003581031624088164, "entry_mcap": 355820.942193885, "p1": 0}
+{"t": 1793518160.084227, "type": "scan", "mint": "GYKnd6jGUSQoBUnj6LdGCBtCWYDgr2Zd6QwNPcy5pump", "symbol": "AAPLCAT", "entry_price": 0.000962364948736096, "entry_mcap": 954531.636684157, "p1": 0}
