@@ -38,4 +38,6 @@
 {"t": 1793495175.2856786, "type": "scan", "mint": "HvitmAeh6TkToQonoiNwqWcrZsYdYiaSZHP7yMmspump", "symbol": "LUMI", "entry_price": 7.700413983118072e-05, "entry_mcap": 76624.0354990061, "p1": 7.061e-05, "p6": 7.061e-05}
 {"t": 1793518159.059072, "type": "scan", "mint": "CPoGSmcjprCvzA2MFYLJMpQkGjmgVzKg4RVwMdrzpump", "symbol": "BLUE", "entry_price": 0.0003581031624088164, "entry_mcap": 355820.942193885, "p1": 0, "p6": 0.0003695}
 {"t": 1793518160.084227, "type": "scan", "mint": "GYKnd6jGUSQoBUnj6LdGCBtCWYDgr2Zd6QwNPcy5pump", "symbol": "AAPLCAT", "entry_price": 0.000962364948736096, "entry_mcap": 954531.636684157, "p1": 0, "p6": 0.0009501}
-{"t": 1793559703.739881, "type": "scan", "mint": "ExxzYBTt3jwU5MUxuw2F4toYbTLdFwThSjyaCn6Xpump", "symbol": "Anakin", "entry_price": 0.002024451238191439, "entry_mcap": 2024451.238}
+{"t": 1793559703.739881, "type": "scan", "mint": "ExxzYBTt3jwU5MUxuw2F4toYbTLdFwThSjyaCn6Xpump", "symbol": "Anakin", "entry_price": 0.002024451238191439, "entry_mcap": 2024451.238, "p1": 0.003484}
+{"t": 1793573201.9175432, "type": "scan", "mint": "6QUHcqYuiPRHxhnYZoygewXtNQr9kUrhc9Tmwgtbpump", "symbol": "RAM", "entry_price": 0.00013637869086971803, "entry_mcap": 136302.7671}
+{"t": 1793573202.9296346, "type": "scan", "mint": "FWatMYieKhRuJ1yuTcmVG1njRhZWwqHwjR11pBympump", "symbol": "Leverhedge", "entry_price": 0.0008877896051803548, "entry_mcap": 879641.771685537}
