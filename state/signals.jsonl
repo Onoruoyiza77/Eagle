@@ -45,5 +45,5 @@
 {"t": 1793646082.2846942, "type": "scan", "mint": "CvRJ8MrnB1AwjrgX25uyeLJiXNSugTo2ZHh8UXDTpump", "symbol": "ANSEM", "entry_price": 0.00012651799311217123, "entry_mcap": 127350.1816, "p1": 0.0001072, "p6": 0.0001072, "p24": 2.011e-05}
 {"t": 1793646082.9615238, "type": "scan", "mint": "8Wi25nQhEay9KwAsoguEs3y1uxaJmCRQxRYnSY9dpump", "symbol": "Learjet", "entry_price": 8.827616364662138e-05, "entry_mcap": 88276.16365, "p1": 2.592e-05, "p6": 2.592e-05, "p24": 7.202e-06}
 {"t": 1793743147.87144, "type": "scan", "mint": "DBPTU2oKLDHXQjAEJ3rZi8bUGmt2uxUbipgg6xmXoMqr", "symbol": "CAPY", "entry_price": 0.0003485879820365172, "entry_mcap": 348174.006234468, "p1": 0.0003001, "p6": 0.0005043, "p24": 0.0004034}
-{"t": 1793871686.4913116, "type": "scan", "mint": "9Y1F6dZ6HpjZDYZdYuUGwMbkUiPsyU7WPTqTQU4Tpump", "symbol": "Democat", "entry_price": 0.0008400730691849139, "entry_mcap": 846943.853813663}
-{"t": 1793871687.4508882, "type": "scan", "mint": "DDmGnuvroxVrb7CSyjYcezFU8gnAfhKasg4ZZezmpump", "symbol": "AMD", "entry_price": 0.0008475425963711211, "entry_mcap": 814854.632822068}
+{"t": 1793871686.4913116, "type": "scan", "mint": "9Y1F6dZ6HpjZDYZdYuUGwMbkUiPsyU7WPTqTQU4Tpump", "symbol": "Democat", "entry_price": 0.0008400730691849139, "entry_mcap": 846943.853813663, "p1": 0.0006066}
+{"t": 1793871687.4508882, "type": "scan", "mint": "DDmGnuvroxVrb7CSyjYcezFU8gnAfhKasg4ZZezmpump", "symbol": "AMD", "entry_price": 0.0008475425963711211, "entry_mcap": 814854.632822068, "p1": 0.0007088}
