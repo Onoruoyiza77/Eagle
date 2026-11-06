@@ -48,4 +48,6 @@
 {"t": 1793871686.4913116, "type": "scan", "mint": "9Y1F6dZ6HpjZDYZdYuUGwMbkUiPsyU7WPTqTQU4Tpump", "symbol": "Democat", "entry_price": 0.0008400730691849139, "entry_mcap": 846943.853813663, "p1": 0.0006066, "p6": 0.0004005, "p24": 2.906e-06}
 {"t": 1793871687.4508882, "type": "scan", "mint": "DDmGnuvroxVrb7CSyjYcezFU8gnAfhKasg4ZZezmpump", "symbol": "AMD", "entry_price": 0.0008475425963711211, "entry_mcap": 814854.632822068, "p1": 0.0007088, "p6": 0.0005326, "p24": 0.0005667}
 {"t": 1793933883.034061, "type": "scan", "mint": "DWdBJoNezK9itTwmPDYrScYpBxvWySxeWWV8N9RcmdrT", "symbol": "COGE", "entry_price": 0.0001354316409863973, "entry_mcap": 134008.991518201, "p1": 4.522e-05, "p6": 4.522e-05}
-{"t": 1793960632.0605536, "type": "scan", "mint": "Hbpjmu51QXzwojmtvnzzFtwpgYdP8SUwxTTDACGxpump", "symbol": "george", "entry_price": 0.0001350030872792046, "entry_mcap": 129541.499422538, "p1": 0.0001414}
+{"t": 1793960632.0605536, "type": "scan", "mint": "Hbpjmu51QXzwojmtvnzzFtwpgYdP8SUwxTTDACGxpump", "symbol": "george", "entry_price": 0.0001350030872792046, "entry_mcap": 129541.499422538, "p1": 0.0001414, "p6": 0.0001178}
+{"t": 1793986617.5898151, "type": "scan", "mint": "5VCEFq1aATjga39QtDunYjJqYBx67w8V8TXwHrqopump", "symbol": "Diamond", "entry_price": 0.0012543758909157778, "entry_mcap": 1256308.47658757}
+{"t": 1793986618.2613356, "type": "scan", "mint": "8Mi9E1V2bdPeAaRkR5yxUsAvpzP6UBUEEUrYmgKNpump", "symbol": "WEALTH", "entry_price": 0.0003177843539597472, "entry_mcap": 315575.274607506}
