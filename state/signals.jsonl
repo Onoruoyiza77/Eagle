@@ -55,4 +55,4 @@
 {"t": 1794091876.9144492, "type": "scan", "mint": "CZRtwCDJy4cKNvtVwtgGqeEGzLnCDJdTkexgpEsMpump", "symbol": "BTC", "entry_price": 0.0002919204913917623, "entry_mcap": 290624.915018858, "p1": 0.0003326, "p6": 0.000543, "p24": 0.0012}
 {"t": 1794126603.3370693, "type": "scan", "mint": "8UQdy5sHMVWUWSHeA5B3ZuuAVNumjSLPXdf19MXcpump", "symbol": "COGE", "entry_price": 0.0014695922511872871, "entry_mcap": 1353355.69, "p1": 0.0007253, "p6": 0.0008781, "p24": 0.0001131}
 {"t": 1794192559.080905, "type": "scan", "mint": "483nprwoMSoGQgrojSHWiePMbKPre7ZRDy4f8YNSpump", "symbol": "HEREWEGO", "entry_price": 0.0003967831070522622, "entry_mcap": 393809.430962561, "p1": 2.801e-06, "p6": 2.801e-06, "p24": 2.516e-06}
-{"t": 1794281482.1984725, "type": "scan", "mint": "FairDR2UmRqHxsVPdPcetePCjFaDqVYv3oQX9fcQTpTg", "symbol": "FAIR", "entry_price": 0.0001077085850730036, "entry_mcap": 108812.6295}
+{"t": 1794281482.1984725, "type": "scan", "mint": "FairDR2UmRqHxsVPdPcetePCjFaDqVYv3oQX9fcQTpTg", "symbol": "FAIR", "entry_price": 0.0001077085850730036, "entry_mcap": 108812.6295, "p1": 0.0003191, "p6": 0.0003191}
