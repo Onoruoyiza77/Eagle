@@ -56,4 +56,4 @@
 {"t": 1794126603.3370693, "type": "scan", "mint": "8UQdy5sHMVWUWSHeA5B3ZuuAVNumjSLPXdf19MXcpump", "symbol": "COGE", "entry_price": 0.0014695922511872871, "entry_mcap": 1353355.69, "p1": 0.0007253, "p6": 0.0008781, "p24": 0.0001131}
 {"t": 1794192559.080905, "type": "scan", "mint": "483nprwoMSoGQgrojSHWiePMbKPre7ZRDy4f8YNSpump", "symbol": "HEREWEGO", "entry_price": 0.0003967831070522622, "entry_mcap": 393809.430962561, "p1": 2.801e-06, "p6": 2.801e-06, "p24": 2.516e-06}
 {"t": 1794281482.1984725, "type": "scan", "mint": "FairDR2UmRqHxsVPdPcetePCjFaDqVYv3oQX9fcQTpTg", "symbol": "FAIR", "entry_price": 0.0001077085850730036, "entry_mcap": 108812.6295, "p1": 0.0003191, "p6": 0.0003191, "p24": 0.0001297}
-{"t": 1794565607.9088407, "type": "scan", "mint": "4FP2GRQS3WYPsZSE2dwaVzqkajrBpHcXyVSTVt83pump", "symbol": "Huang", "entry_price": 0.00012001195411326242, "entry_mcap": 113638.1881}
+{"t": 1794565607.9088407, "type": "scan", "mint": "4FP2GRQS3WYPsZSE2dwaVzqkajrBpHcXyVSTVt83pump", "symbol": "Huang", "entry_price": 0.00012001195411326242, "entry_mcap": 113638.1881, "p1": 0.0001265}
