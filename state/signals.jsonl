@@ -61,5 +61,5 @@
 {"t": 1794625811.3661962, "type": "scan", "mint": "FTu55MyigXns96jz4nTCDDiTCjYJjyrHSceCgG9Upump", "symbol": "FOOD", "entry_price": 0.0012206957734462725, "entry_mcap": 1232943.11843858, "p1": 0.0009514, "p6": 0.0009514, "p24": 0.0003464}
 {"t": 1794689734.8315005, "type": "scan", "mint": "B2YpP21vQBESJ2jtnuhPujEUT61KVRxZ2X5gsDcUpump", "symbol": "JENSEN", "entry_price": 0.000595750191226734, "entry_mcap": 592643.113769981, "p1": 0.0003768, "p6": 9.602e-05, "p24": 8.34e-05}
 {"t": 1794689735.7155216, "type": "scan", "mint": "6Nh9cmDoQvd2FvjNm44VmTwbyiKtxgmM7SCuhREhpump", "symbol": "GTA$", "entry_price": 0.00020784058044590932, "entry_mcap": 208728.3059, "p1": 0.0001459, "p6": 0.0001162, "p24": 0.0001094}
-{"t": 1795161231.7071795, "type": "scan", "mint": "7bCiddGLe5aM8HE2pigT9jsqkmC1HSPxyXN6GkHEpump", "symbol": "OGTA", "entry_price": 0.0005986783300118084, "entry_mcap": 602497.680294932}
-{"t": 1795161232.8967352, "type": "scan", "mint": "9rbKkz2BDQBVgZmrHY6d7PTq2ge91gkpEyE4y9PPpump", "symbol": "Leonida", "entry_price": 0.0007725966379138314, "entry_mcap": 769970.991902157}
+{"t": 1795161231.7071795, "type": "scan", "mint": "7bCiddGLe5aM8HE2pigT9jsqkmC1HSPxyXN6GkHEpump", "symbol": "OGTA", "entry_price": 0.0005986783300118084, "entry_mcap": 602497.680294932, "p1": 0.0002512}
+{"t": 1795161232.8967352, "type": "scan", "mint": "9rbKkz2BDQBVgZmrHY6d7PTq2ge91gkpEyE4y9PPpump", "symbol": "Leonida", "entry_price": 0.0007725966379138314, "entry_mcap": 769970.991902157, "p1": 0.0003331}
