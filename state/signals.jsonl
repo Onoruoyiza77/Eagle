@@ -63,4 +63,4 @@
 {"t": 1794689735.7155216, "type": "scan", "mint": "6Nh9cmDoQvd2FvjNm44VmTwbyiKtxgmM7SCuhREhpump", "symbol": "GTA$", "entry_price": 0.00020784058044590932, "entry_mcap": 208728.3059, "p1": 0.0001459, "p6": 0.0001162, "p24": 0.0001094}
 {"t": 1795161231.7071795, "type": "scan", "mint": "7bCiddGLe5aM8HE2pigT9jsqkmC1HSPxyXN6GkHEpump", "symbol": "OGTA", "entry_price": 0.0005986783300118084, "entry_mcap": 602497.680294932, "p1": 0.0002512, "p6": 0.0001895, "p24": 2.077e-06}
 {"t": 1795161232.8967352, "type": "scan", "mint": "9rbKkz2BDQBVgZmrHY6d7PTq2ge91gkpEyE4y9PPpump", "symbol": "Leonida", "entry_price": 0.0007725966379138314, "entry_mcap": 769970.991902157, "p1": 0.0003331, "p6": 0.001056, "p24": 2.098e-06}
-{"t": 1795261535.5618541, "type": "scan", "mint": "B34nXKzCgsJb9ChLuSHPRpXLE3WFSWyeT8Cqkzzmpump", "symbol": "FIONA", "entry_price": 0.0011418580638428075, "entry_mcap": 1151989.08}
+{"t": 1795261535.5618541, "type": "scan", "mint": "B34nXKzCgsJb9ChLuSHPRpXLE3WFSWyeT8Cqkzzmpump", "symbol": "FIONA", "entry_price": 0.0011418580638428075, "entry_mcap": 1151989.08, "p1": 0.001224}
