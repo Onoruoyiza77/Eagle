@@ -70,4 +70,4 @@
 {"t": 1795348167.8525708, "type": "scan", "mint": "B34nXKzCgsJb9ChLuSHPRpXLE3WFSWyeT8Cqkzzmpump", "symbol": "FIONA", "entry_price": 0.0016652919918958458, "entry_mcap": 1638658.7670856, "p1": 0.001625, "p6": 0.001503, "p24": 9.97}
 {"t": 1795449444.7320328, "type": "scan", "mint": "BzPyyYCTmQNq2BcfQ4ANAvCYk54rnmQEXMFvFT8RhWMi", "symbol": "MCAT", "entry_price": 0.0002562957907157957, "entry_mcap": 250736.541, "p1": 0.0001439, "p6": 0.0001439, "p24": 0.000149}
 {"t": 1795488243.3391895, "type": "scan", "mint": "7cFiqdT46zs7ooHWLFiLSaSQKLMibtokh9dBinsspump", "symbol": "UCASH", "entry_price": 0.0013971692786706258, "entry_mcap": 1395615.80655827, "p1": 3.251e-06, "p6": 3.251e-06, "p24": 2.328e-06}
-{"t": 1795620736.7865875, "type": "scan", "mint": "2UyrvgCRXiEwiKRVk96gs6B4myrBHZAfcLyMVLE8vSCy", "symbol": "JaoJiu", "entry_price": 0.00011618904535671004, "entry_mcap": 116189.0454}
+{"t": 1795620736.7865875, "type": "scan", "mint": "2UyrvgCRXiEwiKRVk96gs6B4myrBHZAfcLyMVLE8vSCy", "symbol": "JaoJiu", "entry_price": 0.00011618904535671004, "entry_mcap": 116189.0454, "p1": 1.452e-05, "p6": 1.452e-05}
